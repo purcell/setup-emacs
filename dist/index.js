@@ -1212,66 +1212,6 @@ exports.debug = debug; // for test
 
 /***/ }),
 
-/***/ 192:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(470));
-const exec = __importStar(__webpack_require__(986));
-const tc = __importStar(__webpack_require__(533));
-const os_1 = __webpack_require__(87);
-const fs_1 = __webpack_require__(747);
-function run() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const home = os_1.homedir();
-            const { username } = os_1.userInfo();
-            const PATH = process.env.PATH;
-            const CERTS_PATH = home + '/.nix-profile/etc/ssl/certs/ca-bundle.crt';
-            // Workaround a segfault: https://github.com/NixOS/nix/issues/2733
-            yield exec.exec("sudo", ["mkdir", "-p", "/etc/nix"]);
-            yield exec.exec("sudo", ["sh", "-c", "echo http2 = false >> /etc/nix/nix.conf"]);
-            // Set jobs to number of cores
-            yield exec.exec("sudo", ["sh", "-c", "echo max-jobs = auto >> /etc/nix/nix.conf"]);
-            // TODO: retry due to all the things that go wrong
-            const nixInstall = yield tc.downloadTool('https://nixos.org/nix/install');
-            yield exec.exec("sh", [nixInstall]);
-            core.exportVariable('PATH', `${PATH}:${home}/.nix-profile/bin`);
-            core.exportVariable('NIX_PATH', `/nix/var/nix/profiles/per-user/${username}/channels`);
-            // macOS needs certificates hints
-            if (fs_1.existsSync(CERTS_PATH)) {
-                core.exportVariable('NIX_SSL_CERT_FILE', CERTS_PATH);
-            }
-        }
-        catch (error) {
-            core.setFailed(`Action failed with error: ${error}`);
-            throw (error);
-        }
-    });
-}
-run();
-
-
-/***/ }),
-
 /***/ 198:
 /***/ (function(__unusedmodule, exports, __webpack_require__) {
 
@@ -1297,8 +1237,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const exec = __importStar(__webpack_require__(986));
 const io = __importStar(__webpack_require__(1));
-const tc = __importStar(__webpack_require__(533));
-const installNix = __importStar(__webpack_require__(192));
+const installNix = __importStar(__webpack_require__(643));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -1307,7 +1246,7 @@ function run() {
             const nixBuildPath = yield io.which("nix-build", false);
             if (nixBuildPath === "") {
                 core.startGroup("Installing Nix");
-                installNix.run();
+                yield installNix.run();
                 core.endGroup();
             }
             const cachixPath = yield io.which("cachix", false);
@@ -1332,7 +1271,7 @@ function run() {
                 "-iA",
                 emacsCIVersion,
                 "-f",
-                yield tc.downloadTool("https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz")
+                "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
             ]);
             core.endGroup();
         }
@@ -3700,6 +3639,75 @@ module.exports = require("path");
 /***/ (function(module) {
 
 module.exports = require("net");
+
+/***/ }),
+
+/***/ 643:
+/***/ (function(__unusedmodule, exports, __webpack_require__) {
+
+"use strict";
+
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+// Based on https://github.com/cachix/install-nix-action
+const core = __importStar(__webpack_require__(470));
+const exec = __importStar(__webpack_require__(986));
+const tc = __importStar(__webpack_require__(533));
+const os_1 = __webpack_require__(87);
+const fs_1 = __webpack_require__(747);
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const home = os_1.homedir();
+            const { username } = os_1.userInfo();
+            const PATH = process.env.PATH;
+            const CERTS_PATH = home + "/.nix-profile/etc/ssl/certs/ca-bundle.crt";
+            // Workaround a segfault: https://github.com/NixOS/nix/issues/2733
+            yield exec.exec("sudo", ["mkdir", "-p", "/etc/nix"]);
+            yield exec.exec("sudo", [
+                "sh",
+                "-c",
+                "echo http2 = false >> /etc/nix/nix.conf"
+            ]);
+            // Set jobs to number of cores
+            yield exec.exec("sudo", [
+                "sh",
+                "-c",
+                "echo max-jobs = auto >> /etc/nix/nix.conf"
+            ]);
+            // TODO: retry due to all the things that go wrong
+            const nixInstall = yield tc.downloadTool("https://nixos.org/nix/install");
+            yield exec.exec("sh", [nixInstall]);
+            core.exportVariable("PATH", `${PATH}:${home}/.nix-profile/bin`);
+            core.exportVariable("NIX_PATH", `/nix/var/nix/profiles/per-user/${username}/channels`);
+            // macOS needs certificates hints
+            if (fs_1.existsSync(CERTS_PATH)) {
+                core.exportVariable("NIX_SSL_CERT_FILE", CERTS_PATH);
+            }
+        }
+        catch (error) {
+            core.setFailed(`Action failed with error: ${error}`);
+            throw error;
+        }
+    });
+}
+exports.run = run;
+
 
 /***/ }),
 

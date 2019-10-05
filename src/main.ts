@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as exec from "@actions/exec";
 import * as io from "@actions/io";
-import * as installNix from "install-nix-action";
+import * as installNix from "./installNix";
 
 async function run() {
   try {
@@ -11,7 +11,7 @@ async function run() {
     const nixBuildPath: string = await io.which("nix-build", false);
     if (nixBuildPath === "") {
       core.startGroup("Installing Nix");
-      installNix.run();
+      await installNix.run();
       core.endGroup();
     }
 
