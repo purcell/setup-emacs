@@ -10,6 +10,9 @@ necessary, along with the "cachix" tool which enables downloads of the
 cached binaries. If you already have nix and possibly cachix
 installed, the existing installations will be used.
 
+Note also that only Linux and MacOS are supported, since Nix is not
+available on Windows.
+
 See the [actions tab](https://github.com/purcell/setup-emacs/actions) for runs of this action! :rocket:
 
 ## Usage:
@@ -20,8 +23,11 @@ with:
   version: 24.5
   ```
 
-For an example of real-life usage, see the [Actions config for
-`package-lint`](https://github.com/purcell/package-lint/blob/master/.github/workflows/test.yml).
+The `emacs` executable on the path will then be the requested
+version. For a list of available versions, please see the
+[nix-emacs-ci](https://github.com/purcell/nix-emacs-ci) project.
+
+For an example of real-life usage, see the [Actions config for `package-lint`](https://github.com/purcell/package-lint/blob/master/.github/workflows/test.yml).
 
 <hr>
 
