@@ -2,6 +2,11 @@
 
 Uses [nix-emacs-ci](https://github.com/purcell/nix-emacs-ci) to provide binaries for a number of different Emacs versions.
 
+Since that project uses Nix, Nix will be installed automatically if
+necessary, along with the "cachix" tool which enables downloads of the
+cached binaries. If you already have nix and possibly cachix
+installed, the existing installations will be used.
+
 See the [actions tab](https://github.com/purcell/setup-emacs) for runs of this action! :rocket:
 
 ## Usage:
