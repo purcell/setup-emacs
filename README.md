@@ -11,13 +11,14 @@ See the [actions tab](https://github.com/purcell/setup-emacs) for runs of this a
 
 ## Usage:
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and tested action
-
 ```yaml
 uses: purcell/setup-emacs@master
 with:
   version: 24.5
-```
+  ```
+
+For an example of real-life usage, see the [Actions config for
+`package-lint`](https://github.com/purcell/package-lint/blob/master/.github/workflows/test.yml).
 
 <hr>
 
