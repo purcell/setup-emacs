@@ -1273,6 +1273,8 @@ function run() {
                 "-f",
                 "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
             ]);
+            core.info("Running 'emacs -version'");
+            yield exec.exec("emacs", ["-version"]);
             core.endGroup();
         }
         catch (error) {
