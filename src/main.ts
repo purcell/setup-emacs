@@ -8,15 +8,15 @@ async function run() {
     const version = core.getInput("version");
     const emacsCIVersion = "emacs-" + version.replace(".", "-");
 
-    const nixBuildPath: string = await io.which("nix-build", true);
-    if (!nixBuildPath) {
+    const nixBuildPath: string = await io.which("nix-build", false);
+    if (nixBuildPath === "") {
       core.startGroup("Installing Nix");
       installNix.run();
       core.endGroup();
     }
 
-    const cachixPath: string = await io.which("cachix", true);
-    if (!cachixPath) {
+    const cachixPath: string = await io.which("cachix", false);
+    if (cachixPath === "") {
       core.startGroup("Installing Cachix");
       // TODO: use cachix official installation link
       await exec.exec("nix-env", [

@@ -1297,20 +1297,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const exec = __importStar(__webpack_require__(986));
 const io = __importStar(__webpack_require__(1));
+const tc = __importStar(__webpack_require__(533));
 const installNix = __importStar(__webpack_require__(192));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const version = core.getInput("version");
             const emacsCIVersion = "emacs-" + version.replace(".", "-");
-            const nixBuildPath = yield io.which("nix-build", true);
-            if (!nixBuildPath) {
+            const nixBuildPath = yield io.which("nix-build", false);
+            if (nixBuildPath === "") {
                 core.startGroup("Installing Nix");
                 installNix.run();
                 core.endGroup();
             }
-            const cachixPath = yield io.which("cachix", true);
-            if (!cachixPath) {
+            const cachixPath = yield io.which("cachix", false);
+            if (cachixPath === "") {
                 core.startGroup("Installing Cachix");
                 // TODO: use cachix official installation link
                 yield exec.exec("nix-env", [
@@ -1331,7 +1332,7 @@ function run() {
                 "-iA",
                 emacsCIVersion,
                 "-f",
-                "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
+                yield tc.downloadTool("https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz")
             ]);
             core.endGroup();
         }
