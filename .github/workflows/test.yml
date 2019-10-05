@@ -1,4 +1,4 @@
-name: "Test setup-emacs"
+name: "CI"
 on:
   pull_request:
   push:
