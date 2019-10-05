@@ -1,10 +1,9 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Set up Emacs'
+description: 'Install a specific Emacs version for use in your workflow.'
+author: 'Steve Purcell'
 inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+  version:
+    description: 'The version of Emacs to install, e.g. "24.3", or "snapshot" for a recent development version.'
 runs:
   using: 'node12'
-  main: 'lib/main.js'
+  main: 'dist/index.js'

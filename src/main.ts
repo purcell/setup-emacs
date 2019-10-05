@@ -1,16 +1,47 @@
-import * as core from '@actions/core';
-import {wait} from './wait'
+import * as core from "@actions/core";
+import * as exec from "@actions/exec";
+import * as io from "@actions/io";
+import * as installNix from "install-nix-action";
 
 async function run() {
   try {
-    const ms = core.getInput('milliseconds');
-    console.log(`Waiting ${ms} milliseconds ...`)
+    const version = core.getInput("version");
+    const emacsCIVersion = "emacs-" + version.replace(".", "-");
 
-    core.debug((new Date()).toTimeString())
-    await wait(parseInt(ms));
-    core.debug((new Date()).toTimeString())
+    const nixBuildPath: string = await io.which("nix-build", true);
+    if (!nixBuildPath) {
+      core.startGroup("Installing Nix");
+      installNix.run();
+      core.endGroup();
+    }
 
-    core.setOutput('time', new Date().toTimeString());
+    const cachixPath: string = await io.which("cachix", true);
+    if (!cachixPath) {
+      core.startGroup("Installing Cachix");
+      // TODO: use cachix official installation link
+      await exec.exec("nix-env", [
+        "-iA",
+        "cachix",
+        "-f",
+        "https://github.com/NixOS/nixpkgs/tarball/ab5863afada3c1b50fc43bf774b75ea71b287cde"
+      ]);
+      core.endGroup();
+    }
+
+    core.startGroup("Enabling cachix for emacs-ci");
+    // TODO: use cachix official installation link
+    await exec.exec("cachix", ["use", "emacs-ci"]);
+    core.endGroup();
+
+    core.startGroup("Installing Emacs");
+    // TODO: use cachix official installation link
+    await exec.exec("nix-env", [
+      "-iA",
+      emacsCIVersion,
+      "-f",
+      "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
+    ]);
+    core.endGroup();
   } catch (error) {
     core.setFailed(error.message);
   }

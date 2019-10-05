@@ -1,10 +1,9 @@
-name: "Test typescript-action"
+name: "Test setup-emacs"
 on:
   pull_request:
   push:
     branches:
       - master
-      - 'releases/*'
 
 jobs:
   test:
@@ -14,7 +13,6 @@ jobs:
 
     - run: npm ci
     - run: npm run build
-    - run: npm test
     - uses: ./
-      with: 
-        milliseconds: 1000
+      with:
+        version: 26.3
