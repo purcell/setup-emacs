@@ -10,7 +10,7 @@ necessary, along with the "cachix" tool which enables downloads of the
 cached binaries. If you already have nix and possibly cachix
 installed, the existing installations will be used.
 
-See the [actions tab](https://github.com/purcell/setup-emacs) for runs of this action! :rocket:
+See the [actions tab](https://github.com/purcell/setup-emacs/actions) for runs of this action! :rocket:
 
 ## Usage:
 
