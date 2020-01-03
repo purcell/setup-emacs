@@ -4,12 +4,26 @@ on:
   push:
     paths-ignore:
     - '**.md'
+    - '**.org'
+    - '.dir-locals.el'
     branches:
       - master
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        emacs_version: [23.4, 24.1, 24.2, 24.3, 24.4, 24.5, 25.1, 25.2, 25.3, 26.1, 26.2, 26.3, snapshot]
+        exclude:
+          - os: macos-latest
+            emacs_version: 23.4
+          - os: macos-latest
+            emacs_version: 24.1
+          - os: macos-latest
+            emacs_version: 24.2
+
     steps:
     - uses: actions/checkout@v1
 
@@ -17,4 +31,6 @@ jobs:
     - run: npm run build
     - uses: ./
       with:
-        version: 26.3
+        version: ${{ matrix.emacs_version }}
+    - name: Check emacs version
+      run: emacs --version
