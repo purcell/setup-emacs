@@ -3679,6 +3679,29 @@ function run() {
             const { username } = os_1.userInfo();
             const PATH = process.env.PATH;
             const CERTS_PATH = home + "/.nix-profile/etc/ssl/certs/ca-bundle.crt";
+            // Catalina workaround https://github.com/NixOS/nix/issues/2925
+            core.info("OS type is " + os_1.type());
+            if (os_1.type() === "Darwin") {
+                const INSTALL_PATH = "/opt/nix";
+                yield exec.exec("sudo", [
+                    "sh",
+                    "-c",
+                    `echo \"nix\t${INSTALL_PATH}\"  >> /etc/synthetic.conf`
+                ]);
+                yield exec.exec("sudo", [
+                    "sh",
+                    "-c",
+                    `mkdir -m 0755 ${INSTALL_PATH} && chown runner ${INSTALL_PATH}`
+                ]);
+                yield exec.exec("/System/Library/Filesystems/apfs.fs/Contents/Resources/apfs.util", ["-B"]);
+                // Needed for sudo to pass NIX_IGNORE_SYMLINK_STORE
+                yield exec.exec("sudo", [
+                    "sh",
+                    "-c",
+                    "echo 'Defaults env_keep += NIX_IGNORE_SYMLINK_STORE'  >> /etc/sudoers"
+                ]);
+                core.exportVariable("NIX_IGNORE_SYMLINK_STORE", "1");
+            }
             // Workaround a segfault: https://github.com/NixOS/nix/issues/2733
             yield exec.exec("sudo", ["mkdir", "-p", "/etc/nix"]);
             yield exec.exec("sudo", [
