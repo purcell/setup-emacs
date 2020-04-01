@@ -5,8 +5,7 @@
   "description": "Github Action to set up a specific emacs version",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/main.ts",
-    "test": "jest"
+    "build": "ncc build src/main.ts"
   },
   "repository": {
     "type": "git",
@@ -26,12 +25,8 @@
     "@actions/tool-cache": "^1.3.3"
   },
   "devDependencies": {
-    "@types/jest": "^24.9.1",
     "@types/node": "^12.12.34",
     "@zeit/ncc": "^0.20.5",
-    "jest": "^24.9.0",
-    "jest-circus": "^24.9.0",
-    "ts-jest": "^24.3.0",
     "typescript": "^3.8.3"
   }
 }
