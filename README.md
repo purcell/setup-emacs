@@ -33,6 +33,10 @@ For an example of real-life usage, see the [Actions config for `package-lint`](h
 
 <hr>
 
+#### Note about compiling binary emacs modules
+
+[Here's an example](https://github.com/xuchunyang/strptime.el) of a project which compiles binary modules against an Emacs installed with this method.
+
 
 [💝 Support this project and my other Open Source work via Patreon](https://www.patreon.com/sanityinc)
 
