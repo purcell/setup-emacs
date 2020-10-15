@@ -34,3 +34,5 @@ jobs:
         version: ${{ matrix.emacs_version }}
     - name: Check emacs version
       run: emacs --version
+    - name: Check nix tools visible
+      run: "nix-shell -p cowsay --run 'cowsay hello'"
