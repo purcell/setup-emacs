@@ -8,30 +8,41 @@ set -euo pipefail
 emacs_ci_version=$1
 [[ -n "$emacs_ci_version" ]]
 
-# On self-hosted runners we don't need to install more than once
-if [[ ! -d /nix/store ]]; then
+if ! type -p nix &>/dev/null ; then
     # Configure Nix
     add_config() {
-        echo "$1" | sudo tee -a /tmp/nix.conf >/dev/null
+        echo "$1" | tee -a /tmp/nix.conf >/dev/null
     }
     # Set jobs to number of cores
     add_config "max-jobs = auto"
     # Allow binary caches for user
     add_config "trusted-users = root $USER"
+    # Append extra nix configuration if provided
 
+    # Nix installer flags
     installer_options=(
-        --daemon
-        --daemon-user-count 4
         --no-channel-add
         --darwin-use-unencrypted-nix-store-volume
         --nix-extra-conf-file /tmp/nix.conf
     )
 
-    sh <(curl --retry 5 --retry-connrefused -L https://nixos.org/nix/install) "${installer_options[@]}"
-    if [[ $OSTYPE =~ darwin ]]; then
-        # Disable spotlight indexing of /nix to speed up performance
-        sudo mdutil -i off /nix
+    # only use the nix-daemon settings if on darwin (which get ignored) or systemd is supported
+    if [[ $OSTYPE =~ darwin || -e /run/systemd/system ]]; then
+        installer_options+=(
+            --daemon
+            --daemon-user-count `python -c 'import multiprocessing as mp; print(mp.cpu_count() * 2)'`
+        )
+    else
+        # "fix" the following error when running nix*
+        # error: the group 'nixbld' specified in 'build-users-group' does not exist
+        mkdir -m 0755 /etc/nix
+        echo "build-users-group =" > /etc/nix/nix.conf
+    fi
 
+    echo "installer options: ${installer_options[@]}"
+    sh <(curl --retry 5 --retry-connrefused -L "${INPUT_INSTALL_URL:-https://nixos.org/nix/install}") "${installer_options[@]}"
+
+    if [[ $OSTYPE =~ darwin ]]; then
         # macOS needs certificates hints
         cert_file=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
         echo "NIX_SSL_CERT_FILE=$cert_file" >> "$GITHUB_ENV"
@@ -43,12 +54,11 @@ if [[ ! -d /nix/store ]]; then
     echo "/nix/var/nix/profiles/per-user/$USER/profile/bin" >> "$GITHUB_PATH"
     echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
 
-    PATH=/nix/var/nix/profiles/per-user/$USER/profile/bin:/nix/var/nix/profiles/default/bin:$PATH
-
     export NIX_PATH=nixpkgs=channel:nixpkgs-unstable
     echo "NIX_PATH=${NIX_PATH}" >> $GITHUB_ENV
 fi
 
+PATH="/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/per-user/$USER/profile/bin:$PATH"
 nix-env --quiet -j8 -iA cachix -f https://cachix.org/api/v1/install
 cachix use emacs-ci
 
