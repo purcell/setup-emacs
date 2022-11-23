@@ -5,5 +5,5 @@ inputs:
   version:
     description: 'The version of Emacs to install, e.g. "24.3", or "snapshot" for a recent development version.'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
