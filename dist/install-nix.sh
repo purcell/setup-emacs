@@ -16,7 +16,13 @@ if ! type -p nix &>/dev/null ; then
     # Set jobs to number of cores
     add_config "max-jobs = auto"
     # Allow binary caches for user
-    add_config "trusted-users = root $USER"
+    add_config "trusted-users = root ${USER:-}"
+    # Add github access token
+    if [[ -n "${INPUT_GITHUB_ACCESS_TOKEN:-}" ]]; then
+        add_config "access-tokens = github.com=$INPUT_GITHUB_ACCESS_TOKEN"
+    elif [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        add_config "access-tokens = github.com=$GITHUB_TOKEN"
+    fi
     # Append extra nix configuration if provided
 
     # Nix installer flags
@@ -51,8 +57,9 @@ if ! type -p nix &>/dev/null ; then
     fi
 
     # Set paths
-    echo "/nix/var/nix/profiles/per-user/$USER/profile/bin" >> "$GITHUB_PATH"
     echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
+    # new path for nix 2.14
+    echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
 
     export NIX_PATH=nixpkgs=channel:nixpkgs-unstable
     echo "NIX_PATH=${NIX_PATH}" >> $GITHUB_ENV
