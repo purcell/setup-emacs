@@ -5,9 +5,6 @@
 
 set -euo pipefail
 
-emacs_ci_version=$1
-[[ -n "$emacs_ci_version" ]]
-
 if ! type -p nix &>/dev/null ; then
     # Configure Nix
     add_config() {
@@ -65,10 +62,9 @@ if ! type -p nix &>/dev/null ; then
     echo "NIX_PATH=${NIX_PATH}" >> $GITHUB_ENV
 fi
 
-PATH="/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/per-user/$USER/profile/bin:$PATH"
+PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
 nix-env --quiet -j8 -iA cachix -f https://cachix.org/api/v1/install
 cachix use emacs-ci
-
-nix-env -iA "$emacs_ci_version" -f "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
+nix-env -iA "emacs-${INPUT_VERSION/./-}" -f "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
 
 emacs -version

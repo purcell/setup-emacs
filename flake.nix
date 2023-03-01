@@ -14,10 +14,7 @@
       in
       {
         devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [nodejs-16_x];
-          shellHook = ''
-            PATH="$PATH:$(pwd)/node_modules/.bin"
-          '';
+          buildInputs = with pkgs; [ pkgs.shellcheck ];
         };
       }
     );
