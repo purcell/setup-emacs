@@ -5,5 +5,10 @@ inputs:
   version:
     description: 'The version of Emacs to install, e.g. "24.3", or "snapshot" for a recent development version.'
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: 'composite'
+  steps:
+    - run: ${{ github.action_path }}/install.sh
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        GITHUB_TOKEN: ${{ github.token }}
