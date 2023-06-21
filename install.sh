@@ -12,6 +12,9 @@ if ! type -p nix &>/dev/null ; then
     }
     # Set jobs to number of cores
     add_config "max-jobs = auto"
+    if [[ $OSTYPE =~ darwin ]]; then
+        add_config "ssl-cert-file = /etc/ssl/cert.pem"
+    fi
     # Allow binary caches for user
     add_config "trusted-users = root ${USER:-}"
     # Add github access token
@@ -44,14 +47,6 @@ if ! type -p nix &>/dev/null ; then
 
     echo "installer options: ${installer_options[@]}"
     sh <(curl --retry 5 --retry-connrefused -L "${INPUT_INSTALL_URL:-https://nixos.org/nix/install}") "${installer_options[@]}"
-
-    if [[ $OSTYPE =~ darwin ]]; then
-        # macOS needs certificates hints
-        cert_file=/nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt
-        echo "NIX_SSL_CERT_FILE=$cert_file" >> "$GITHUB_ENV"
-        export NIX_SSL_CERT_FILE=$cert_file
-        sudo launchctl setenv NIX_SSL_CERT_FILE "$cert_file"
-    fi
 
     # Set paths
     echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
