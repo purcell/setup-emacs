@@ -77,11 +77,16 @@ if ! type -p nix &>/dev/null ; then
 
     # Close the log message group which was opened above
     echo "::endgroup::"
+
+    # Apply the changes immediately for the subsequent commands
+    while IFS= read -r line; do
+        PATH="$PATH:$line"
+    done < "$GITHUB_PATH"
+    source "$GITHUB_ENV"
 fi
 
-echo "::group::Configuring build cache and installing Emacs"
-PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
-nix-env --quiet -j8 -iA cachix -f https://cachix.org/api/v1/install
-cachix use emacs-ci
-nix-env -iA "emacs-${INPUT_VERSION/./-}" -f "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
+echo "::group::Installing Emacs into active nix profile"
+mkdir -p "$HOME/.config/nix"
+echo "experimental-features = nix-command flakes" >> "$HOME/.config/nix/nix.conf"
+nix profile install --accept-flake-config "github:purcell/nix-emacs-ci#emacs-${INPUT_VERSION/./-}"
 echo "::endgroup::"
