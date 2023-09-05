@@ -6,10 +6,18 @@
 set -euo pipefail
 
 if ! type -p nix &>/dev/null ; then
+    # GitHub command to put the following log messages into a group which is collapsed by default
+    echo "::group::Installing Nix"
+
+    # Create a temporary workdir
+    workdir=$(mktemp -d)
+    trap 'rm -rf "$workdir"' EXIT
+
     # Configure Nix
     add_config() {
-        echo "$1" | tee -a /tmp/nix.conf >/dev/null
+        echo "$1" >> "$workdir/nix.conf"
     }
+    add_config "show-trace = true"
     # Set jobs to number of cores
     add_config "max-jobs = auto"
     if [[ $OSTYPE =~ darwin ]]; then
@@ -18,48 +26,62 @@ if ! type -p nix &>/dev/null ; then
     # Allow binary caches for user
     add_config "trusted-users = root ${USER:-}"
     # Add github access token
-    if [[ -n "${INPUT_GITHUB_ACCESS_TOKEN:-}" ]]; then
-        add_config "access-tokens = github.com=$INPUT_GITHUB_ACCESS_TOKEN"
-    elif [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
         add_config "access-tokens = github.com=$GITHUB_TOKEN"
     fi
-    # Append extra nix configuration if provided
 
     # Nix installer flags
     installer_options=(
         --no-channel-add
         --darwin-use-unencrypted-nix-store-volume
-        --nix-extra-conf-file /tmp/nix.conf
+        --nix-extra-conf-file "$workdir/nix.conf"
     )
 
     # only use the nix-daemon settings if on darwin (which get ignored) or systemd is supported
     if [[ $OSTYPE =~ darwin || -e /run/systemd/system ]]; then
         installer_options+=(
             --daemon
-            --daemon-user-count `python -c 'import multiprocessing as mp; print(mp.cpu_count() * 2)'`
+            --daemon-user-count "$(python3 -c 'import multiprocessing as mp; print(mp.cpu_count() * 2)')"
         )
     else
         # "fix" the following error when running nix*
         # error: the group 'nixbld' specified in 'build-users-group' does not exist
-        mkdir -m 0755 /etc/nix
-        echo "build-users-group =" > /etc/nix/nix.conf
+        add_config "build-users-group ="
+        sudo mkdir -p /etc/nix
+        sudo chmod 0755 /etc/nix
+        sudo cp "$workdir/nix.conf" /etc/nix/nix.conf
     fi
 
-    echo "installer options: ${installer_options[@]}"
-    sh <(curl --retry 5 --retry-connrefused -L "${INPUT_INSTALL_URL:-https://nixos.org/nix/install}") "${installer_options[@]}"
+    # There is --retry-on-errors, but only newer curl versions support that
+    curl_retries=5
+    while ! curl -sS -o "$workdir/install" -v --fail -L "https://releases.nixos.org/nix/nix-2.17.0/install"
+    do
+        sleep 1
+        ((curl_retries--))
+        if [[ $curl_retries -le 0 ]]; then
+            echo "curl retries failed" >&2
+            exit 1
+        fi
+    done
+
+    sh "$workdir/install" "${installer_options[@]}"
 
     # Set paths
     echo "/nix/var/nix/profiles/default/bin" >> "$GITHUB_PATH"
     # new path for nix 2.14
     echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
 
+    # Unlike upstream install-nix-action, we enable a default channel
     export NIX_PATH=nixpkgs=channel:nixpkgs-unstable
-    echo "NIX_PATH=${NIX_PATH}" >> $GITHUB_ENV
+    echo "NIX_PATH=${NIX_PATH}" >> "$GITHUB_ENV"
+
+    # Close the log message group which was opened above
+    echo "::endgroup::"
 fi
 
+echo "::group::Configuring build cache and installing Emacs"
 PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
 nix-env --quiet -j8 -iA cachix -f https://cachix.org/api/v1/install
 cachix use emacs-ci
 nix-env -iA "emacs-${INPUT_VERSION/./-}" -f "https://github.com/purcell/nix-emacs-ci/archive/master.tar.gz"
-
-emacs -version
+echo "::endgroup::"
