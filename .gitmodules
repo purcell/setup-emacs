@@ -1,0 +1,3 @@
+[submodule "install-nix-action"]
+	path = install-nix-action
+	url = https://github.com/cachix/install-nix-action
