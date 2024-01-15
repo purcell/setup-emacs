@@ -7,6 +7,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - run: cd ${{ github.action_path }} && git submodule update --init install-nix-action
+      shell: bash
     - run: ${{ github.action_path }}/install.sh
       shell: bash
       env:
