@@ -10,7 +10,7 @@ if ! type -p nix &>/dev/null ; then
         INPUT_INSTALL_URL= \
         INPUT_NIX_PATH="nixpkgs=channel:nixos-unstable" \
         INPUT_ENABLE_KVM=true \
-        "$(dirname "$0")"/install-nix-action/install-nix.sh
+        "$(dirname "$0")"/install-nix.sh
     # Make the installed Nix immediately available here
     source "$GITHUB_ENV"
     while IFS= read -r dir; do PATH="$dir:$PATH"; done < "$GITHUB_PATH"
