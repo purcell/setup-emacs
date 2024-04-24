@@ -13,7 +13,7 @@ installed, the existing installations will be used.
 Note also that only Linux and MacOS are supported, since Nix is not
 available on Windows.
 
-Check out [examples of using this Action in the wild](https://github.com/search?l=&q=purcell/setup-emacs+++filename%3A*.yml&type=Code).
+Check out [examples of using this Action in the wild in 1500+ repositories](https://github.com/search?q=purcell%2Fsetup-emacs+++path%3A.github%2Fworkflows%2F*.yml&type=code).
 
 See the [actions tab](https://github.com/purcell/setup-emacs/actions) for runs of this action! :rocket:
 
