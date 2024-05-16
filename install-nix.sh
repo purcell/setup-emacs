@@ -56,6 +56,11 @@ fi
 if [[ ! $INPUT_EXTRA_NIX_CONFIG =~ "experimental-features" ]]; then
   add_config "experimental-features = nix-command flakes"
 fi
+# Always allow substituting from the cache, even if the derivation has `allowSubstitutes = false`.
+# This is a CI optimisation to avoid having to download the inputs for already-cached derivations to rebuild trivial text files.
+if [[ ! $INPUT_EXTRA_NIX_CONFIG =~ "always-allow-substitutes" ]]; then
+  add_config "always-allow-substitutes = true"
+fi
 
 # Nix installer flags
 installer_options=(
@@ -88,7 +93,7 @@ echo "installer options: ${installer_options[*]}"
 
 # There is --retry-on-errors, but only newer curl versions support that
 curl_retries=5
-while ! curl -sS -o "$workdir/install" -v --fail -L "${INPUT_INSTALL_URL:-https://releases.nixos.org/nix/nix-2.19.2/install}"
+while ! curl -sS -o "$workdir/install" -v --fail -L "${INPUT_INSTALL_URL:-https://releases.nixos.org/nix/nix-2.22.1/install}"
 do
   sleep 1
   ((curl_retries--))
