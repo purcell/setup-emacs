@@ -4,6 +4,11 @@
 
 set -euo pipefail
 
+deps="'sudo', 'curl', 'xz'"
+type -p sudo || (1>/dev/stderr echo "Please install $deps"; exit 1)
+type -p curl || (1>/dev/stderr echo "Please install $deps"; exit 1)
+type -p xz || (1>/dev/stderr echo "Please install $deps"; exit 1)
+
 if ! type -p nix &>/dev/null ; then
     env INPUT_EXTRA_NIX_CONFIG= \
         INPUT_INSTALL_OPTIONS= \
