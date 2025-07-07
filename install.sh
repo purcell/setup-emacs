@@ -4,12 +4,15 @@
 
 set -euo pipefail
 
-deps="'sudo', 'curl', 'xz'"
-type -p sudo || (1>/dev/stderr echo "Please install $deps"; exit 1)
-type -p curl || (1>/dev/stderr echo "Please install $deps"; exit 1)
-type -p xz || (1>/dev/stderr echo "Please install $deps"; exit 1)
-
 if ! type -p nix &>/dev/null ; then
+    missing_deps=""
+    for dep in sudo curl xz; do
+      type -p "$dep" || exec missing_deps="$dep $missing_deps"
+    done
+    if [ -n "$missing_deps" ]; then
+      echo "The nix installer will require some programs that are not installed: $missing_deps" >&2
+      exit 1
+    fi
     env INPUT_EXTRA_NIX_CONFIG= \
         INPUT_INSTALL_OPTIONS= \
         INPUT_INSTALL_URL= \
