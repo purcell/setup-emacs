@@ -1,21 +1,29 @@
 {
   description = "Setup Emacs Action";
 
-  inputs =
-    {
-      nixpkgs.url = "nixpkgs/nixpkgs-unstable";
-      flake-utils.url = "github:numtide/flake-utils";
-    };
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+  };
 
-  outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs =
+    {
+      self,
+      nixpkgs,
+    }:
+    (
       let
-        pkgs = import nixpkgs { inherit system; };
+        forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.platforms.all;
       in
       {
-        devShell = pkgs.mkShell {
-          buildInputs = with pkgs; [ pkgs.shellcheck ];
-        };
+        devShell = forAllSystems (
+          system:
+          let
+            pkgs = import nixpkgs { inherit system; };
+          in
+          pkgs.mkShell {
+            buildInputs = with pkgs; [ pkgs.shellcheck ];
+          }
+        );
       }
     );
 }
