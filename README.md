@@ -18,7 +18,7 @@ See the [actions tab](https://github.com/purcell/setup-emacs/actions) for runs o
 ## Usage:
 
 ```yaml
-uses: purcell/setup-emacs@master
+uses: purcell/setup-emacs@main
 with:
   version: 24.5
   ```
