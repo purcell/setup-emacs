@@ -2,7 +2,7 @@
   description = "Setup Emacs Action";
 
   inputs = {
-    nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "https://channels.nixos.org/nixpkgs-unstable/nixexprs.tar.zst";
   };
 
   outputs =
@@ -10,20 +10,12 @@
       self,
       nixpkgs,
     }:
-    (
-      let
-        forAllSystems = nixpkgs.lib.genAttrs nixpkgs.lib.platforms.all;
-      in
-      {
-        devShell = forAllSystems (
-          system:
-          let
-            pkgs = import nixpkgs { inherit system; };
-          in
-          pkgs.mkShell {
-            buildInputs = with pkgs; [ pkgs.shellcheck ];
-          }
-        );
-      }
-    );
+    {
+      devShell = builtins.mapAttrs (
+        system: pkgs:
+        pkgs.mkShell {
+          buildInputs = with pkgs; [ pkgs.shellcheck ];
+        }
+      ) nixpkgs.legacyPackages;
+    };
 }
